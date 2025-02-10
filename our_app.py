@@ -187,13 +187,13 @@ def generate_pdf_report(data, results_table):
 
 
 def main():
-    st.set_page_config(page_title="Textile Analyzer", layout="wide")
-    st.title("Textile Engineering Analyzer")
+    st.set_page_config(page_title="Textile Material Analyzer", layout="wide")
+    st.title("Textile Material Analyzer")
 
     # About App Button and Modal
     if st.sidebar.button("About the App"):
         about_text = """
-        ### Textile Engineering Analyzer: Application Overview
+        ### Application Overview
 
         This web application assists textile engineers and material scientists in analyzing and predicting the properties of ropes and rods, specifically their tensile strength. It allows users to:
 
