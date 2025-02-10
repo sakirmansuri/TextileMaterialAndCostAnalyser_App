@@ -581,6 +581,14 @@ def main():
             mime="application/pdf"
         )
 
-
+# Add the line at the end of the main page
+    st.markdown(
+        """
+        <div style="text-align: center; margin-top: 20px;">
+            Made by Sakir and Jyot under the guidance of Dr. Jaita Sharma, Dr. Aadhar Mandot, and Mr. Ajay Pathak.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 if __name__ == "__main__":
     main()
