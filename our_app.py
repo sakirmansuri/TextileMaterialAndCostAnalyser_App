@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from ast import literal_eval
 
-# Material database (same as before)
+
 materials_data = {
     # Ropes
     "Nylon Rope": {
@@ -77,7 +77,7 @@ materials_data = {
     }
 }
 
-# Unit conversion factors (same as before)
+
 unit_factors = {
     "kgf": {"kgf": 1, "N": 9.80665, "MPa": 0.1},
     "N": {"kgf": 0.101972, "N": 1, "MPa": 0.0101972},
@@ -120,7 +120,7 @@ def generate_pdf_report(data, results_table):
     styles = getSampleStyleSheet()
     story = []
 
-    # Add custom style
+    
     styles.add(ParagraphStyle(name='LeftAlign', alignment=0))
 
     # Title
@@ -139,12 +139,12 @@ def generate_pdf_report(data, results_table):
         ["Young's Modulus Unit", data["Young's Modulus Unit"]],
     ]
 
-    # Add optional parameters based on analysis mode
+    
     if "Element Count" in data:  # Strength Prediction
         input_params_data.append(["Number of Elements", data["Element Count"]])
     else:  # Cost Optimization
         input_params_data.append(
-            ["Target Strength", f"{data.get('Target Strength', 'N/A')} {data['Strength Unit']}"])  # Use .get()
+            ["Target Strength", f"{data.get('Target Strength', 'N/A')} {data['Strength Unit']}"])  
         input_params_data.append(["Maximum Elements", data.get("Maximum Elements", "N/A")])
 
     input_params_table = Table(input_params_data)
@@ -179,7 +179,7 @@ def generate_pdf_report(data, results_table):
     story.append(Spacer(1, 12))
 
     story.append(Paragraph("Results", styles['h2']))
-    story.append(results_table)  # The results table passed to the function
+    story.append(results_table)  
 
     doc.build(story)
     buffer.seek(0)
@@ -190,7 +190,7 @@ def main():
     st.set_page_config(page_title="Textile Material Analyzer", layout="wide")
     st.title("Textile Material Analyzer")
 
-    # About App Button and Modal
+    
     if st.sidebar.button("About the App"):
         about_text = """
         ### Application Overview
@@ -257,7 +257,7 @@ def main():
         """
         st.sidebar.markdown(about_text)
 
-    # CSV Upload Section with Instructions and Example in a Collapsible Section
+    
     st.subheader("Upload Material Data (CSV)")
     with st.expander("CSV File Format Help"):
         st.markdown("""
@@ -289,13 +289,13 @@ def main():
             4.  Click "Save".
         """)
 
-    col1_upload, col2_upload = st.columns([3, 1])  # Adjust column widths as needed
+    col1_upload, col2_upload = st.columns([3, 1])  
 
     with col1_upload:
       uploaded_file = st.file_uploader("Upload CSV", type="csv", key="file_uploader")
     with col2_upload:
-      st.markdown("") #for allign
-      st.markdown("") #for allign
+      st.markdown("") 
+      st.markdown("") 
       if st.button("Help"):
           st.write("Click on 'CSV File Format Help' above to see the required format.")
 
@@ -303,14 +303,14 @@ def main():
     if uploaded_file is not None:
         try:
             df_uploaded = pd.read_csv(uploaded_file)
-            st.write(df_uploaded)  # Display the uploaded data
+            st.write(df_uploaded)  
 
-            # Convert uploaded data to the required format.
+           
             new_materials_data = {}
             for index, row in df_uploaded.iterrows():
-                # Basic error handling
+                
                 try:
-                    x_values = literal_eval(row['x'])  # Use eval safely with literal_eval
+                    x_values = literal_eval(row['x'])  
                     y_values = literal_eval(row['y'])
                     if not (isinstance(x_values, list) and isinstance(y_values, list)):
                         raise ValueError("x and y must be lists")
@@ -318,12 +318,12 @@ def main():
                         raise ValueError("x and y lists must have the same length")
 
                     new_materials_data[row['Material Name']] = {
-                        "type": row['Type'].lower(),  # important to convert .lower()
+                        "type": row['Type'].lower(),  
                         "x": x_values,
                         "y": y_values,
                         "density": float(row['Density']),
                         "base_cost": float(row['Cost']),
-                        "tensile_strength": float(row.get('Tensile Strength', 0)),  # Use .get() for optional columns
+                        "tensile_strength": float(row.get('Tensile Strength', 0)),  
                         "yield_strength": float(row.get('Yield Strength', 0)),
                         "elongation_at_break": float(row.get('Elongation at Break', 0)),
                         "youngs_modulus": float(row.get("Young's Modulus", 0)),
@@ -331,9 +331,9 @@ def main():
                     }
                 except (ValueError, SyntaxError, TypeError) as e:
                     st.error(f"Error processing row {index + 1}: {e}.  Skipping this row.")
-                    continue  # Skip to the next row
+                    continue  
 
-            # Merge with existing data (optional, if you want to keep the original data)
+            
             materials_data.update(new_materials_data)
             st.success("CSV data loaded and merged successfully!")
 
@@ -345,7 +345,7 @@ def main():
         st.header("Configuration")
         structure_type = st.radio("Structure Type:", ("Rope", "Rod"))
 
-        # Filter materials based on selected type
+        
         filtered_materials = {
             k: v for k, v in materials_data.items()
             if v["type"] == structure_type.lower()
@@ -364,18 +364,18 @@ def main():
                                                             min_value=1.0,
                                                             step=10.0)
         else:
-            selected_material = st.selectbox("Select Material:", list(filtered_materials.keys()))  # Convert to list
+            selected_material = st.selectbox("Select Material:", list(filtered_materials.keys()))  
             selected_data = filtered_materials[selected_material].copy()
             selected_data["current_cost"] = st.number_input("Edit Cost (₹/kg):",
                                                             value=float(selected_data["base_cost"]),
                                                             min_value=1.0,
                                                             step=10.0)
 
-        # Unit selection
+       
         strength_unit = st.selectbox("Strength Unit:", ("kgf", "N", "MPa"))
         density_unit = st.selectbox("Density Unit:", ("g/cm^3", "kg/m^3"))
         youngs_modulus_unit = st.selectbox("Young's Modulus Unit", ("MPa", "GPa"))
-        # ... (Add other unit selections as needed)
+       
 
         analysis_mode = st.radio("Analysis Mode:", ("Strength Prediction", "Cost Optimization"))
 
@@ -391,12 +391,12 @@ def main():
         with col2:
             coefficients = calculate_coefficients(selected_data["x"], selected_data["y"])
 
-            # Convert predicted strength based on units
+           
             if structure_type == "Rope":
                 predicted_strength_raw = np.polyval(coefficients, element_count)
                 predicted_strength = predicted_strength_raw * unit_factors[strength_unit]['kgf']
             else:
-                predicted_strength_raw = np.polyval(coefficients, element_count)  # Rod strength in MPa
+                predicted_strength_raw = np.polyval(coefficients, element_count)  
                 predicted_strength = predicted_strength_raw * unit_factors[strength_unit]['MPa']
 
             st.metric(
@@ -405,12 +405,12 @@ def main():
                 help="Maximum load capacity before failure"
             )
 
-        # Plotly chart
+       
         fig = go.Figure()
         x_range = np.linspace(min(selected_data["x"]), max(selected_data["x"]) * 1.2, 100)
         y_pred = np.polyval(coefficients, x_range)
 
-        # Convert y_pred for plotting if necessary.
+        
         if structure_type == "Rope":
             y_pred_converted = y_pred * unit_factors[strength_unit]['kgf']
         else:
@@ -420,7 +420,7 @@ def main():
         fig.add_trace(go.Scatter(x=selected_data["x"],
                                  y=[y * unit_factors[strength_unit]['kgf'] if structure_type == 'Rope' else y *
                                     unit_factors[strength_unit]['MPa'] for y in selected_data['y']], mode='markers',
-                                 name='Data Points'))  # Convert datapoints too
+                                 name='Data Points'))  
         fig.add_vline(x=element_count, line_dash="dash", line_color="green", annotation_text="Selected Count")
         fig.update_layout(
             xaxis_title="Number of Elements",
@@ -478,11 +478,11 @@ def main():
         coefficients = calculate_coefficients(selected_data["x"], selected_data["y"])
         elements_range = np.arange(1, max_elements + 1)
 
-        # Calculate strength values and convert them to the selected unit.
+       
         if structure_type == "Rope":
             strength_values_raw = np.polyval(coefficients, elements_range)
             strength_values = strength_values_raw * unit_factors[strength_unit]['kgf']
-        else:  # Rod
+        else: 
             strength_values_raw = np.polyval(coefficients, elements_range)
             strength_values = strength_values_raw * unit_factors[strength_unit]['MPa']
 
@@ -490,13 +490,13 @@ def main():
 
         if len(valid_solutions) > 0:
             optimal_elements = valid_solutions[0]
-            # Convert density to consistent units
-            density = selected_data["density"] * unit_factors[density_unit]["g/cm^3"]  # Convert to g/cm^3
+            
+            density = selected_data["density"] * unit_factors[density_unit]["g/cm^3"]  
             if structure_type == 'Rope':
-                material_mass = optimal_elements  # Number of yarns
+                material_mass = optimal_elements 
             else:
-                material_mass = optimal_elements  # Number of rods
-            total_cost = material_mass * selected_data["current_cost"] * density  # Use g/cm3
+                material_mass = optimal_elements  
+            total_cost = material_mass * selected_data["current_cost"] * density  
 
             with col1:
                 st.metric("Optimal Elements", optimal_elements)
@@ -507,7 +507,7 @@ def main():
                     "Elements": elements_range,
                     "Strength": strength_values,
                     "Cost": [e * selected_data["density"] * unit_factors[density_unit]["g/cm^3"] * selected_data[
-                        "current_cost"] for e in elements_range]  # Consistent units.
+                        "current_cost"] for e in elements_range]  
                 })
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(x=df["Elements"], y=df["Strength"], mode='lines', name='Strength'))
@@ -546,19 +546,19 @@ def main():
                 "Elongation at Break": f"{selected_data['elongation_at_break']:.2f} %",
                 "Standard": selected_data["standard"]
             },
-            "Target Strength": target_strength if analysis_mode == "Cost Optimization" else None,  # Add target strength
-            "Maximum Elements": max_elements if analysis_mode == "Cost Optimization" else None  # Add max elements
+            "Target Strength": target_strength if analysis_mode == "Cost Optimization" else None, 
+            "Maximum Elements": max_elements if analysis_mode == "Cost Optimization" else None  
 
         }
 
-        # Create results table for PDF
+       
         if analysis_mode == "Cost Optimization":
             results_data = [["Elements", "Strength (" + strength_unit + ")", "Cost (₹)"]]
             for e, s, c in zip(elements_range, strength_values,
                                [e * selected_data["density"] * unit_factors[density_unit]["g/cm^3"] * selected_data[
-                                   "current_cost"] for e in elements_range]):  # Consistent units
+                                   "current_cost"] for e in elements_range]):  
                 results_data.append([e, f"{s:.2f}", f"{c:.2f}"])
-        else:  # Strength prediction mode
+        else: 
             results_data = [["Number of Elements", "Predicted Strength (" + strength_unit + ")"]]
             results_data.append([element_count, f"{predicted_strength:.2f}"])
 
@@ -581,11 +581,11 @@ def main():
             mime="application/pdf"
         )
 
-# Add the line at the end of the main page
+
     st.markdown(
         """
         <div style="text-align: center; margin-top: 20px;">
-            Made by Sakir and Jyot under the guidance of Dr. Jaita Sharma, Dr. Aadhar Mandot, and Mr. Ajay Pathak.
+            Made by Sakir under the guidance of Dr. Jaita Sharma, Dr. Aadhar Mandot, and Mr. Ajay Pathak.
         </div>
         """,
         unsafe_allow_html=True
